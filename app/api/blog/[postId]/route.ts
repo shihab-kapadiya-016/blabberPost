@@ -72,7 +72,7 @@ export async function GET(
 
 export async function PATCH(request: NextRequest, 
     { params }: {params : {postId: string}}) {
-        const {postId} = params
+        const {postId} = await params
 
         if(!postId) {
             return NextResponse.json({

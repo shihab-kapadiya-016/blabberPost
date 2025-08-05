@@ -7,7 +7,7 @@ export async function GET(
   request: NextRequest,
   context: { params: { postId: string } }
 ) {
-  const { postId } = context.params;
+  const { postId } = await context.params;
 
   if (!postId) {
     return NextResponse.json({ error: "postId not found" }, { status: 404 });

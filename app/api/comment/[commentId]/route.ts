@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(request: NextRequest, {params}: {params: {commentId: string}}) {
-    const { commentId } = params
+    const { commentId } = await params
 
     if(!commentId) {
         return NextResponse.json(
@@ -29,7 +29,7 @@ export async function DELETE(request: NextRequest, {params}: {params: {commentId
 }
 
 export async function  PATCH(request: NextRequest, {params} : {params: {commentId: string}}) {
-    const { commentId } = params
+    const { commentId } = await params
     const {content} = await request.json()
 
     if(!commentId) {
@@ -61,7 +61,7 @@ export async function  PATCH(request: NextRequest, {params} : {params: {commentI
 }
 
 export async function POST(request: NextRequest, {params} : {params: {commentId: string}}) {
-    const { commentId } = params
+    const { commentId } = await params
     const {content} = await request.json()
     const session = await getServerSession(authOptions)
 

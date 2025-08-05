@@ -44,7 +44,7 @@ export async function GET(
     request: NextRequest,
     {params}: {params: {postId: string}}) 
     {
-        const {postId} = params;
+        const {postId} = await params;
 
         if(!postId) {
             return NextResponse.json({

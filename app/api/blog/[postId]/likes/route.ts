@@ -9,7 +9,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { postId: string } }
 ) {
-  const { postId } = params;
+  const { postId } = await params;
 
   const session = await getServerSession(authOptions); // 🛠️ include authOptions if needed
 
