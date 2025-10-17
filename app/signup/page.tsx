@@ -99,20 +99,13 @@ const RegisterPage = () => {
         avatarUrl,
       });
 
-      const loginResponse = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-      });
-
-      if (!loginResponse?.ok) throw new Error("Login failed after signup");
-
       toast.success("Account created successfully!", {
-        description: "You’re now signed in. 🎉",
+        description: "You're account is created. Please Login . 🎉",
         icon: <CheckCircle2 className="text-green-600" />,
         className: "bg-green-100 text-green-800 border border-green-300",
       });
 
-      router.push("/dashboard");
+      router.push("/signin");
     } catch (error: any) {
       console.error(error);
       toast.error("Sign up failed.", {
