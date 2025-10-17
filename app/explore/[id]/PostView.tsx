@@ -331,7 +331,7 @@ const PostView: React.FC<PostViewProps> = ({ post, setPost, author, comments, se
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(new Date(comment.createdAt).toLocaleDateString())}
+                        {formatDate(new Date(comment.createdAt).toISOString())}
                       </span>
                     </div>
 
