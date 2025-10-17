@@ -8,7 +8,7 @@ import Footer from "@/Components/Footer/Footer";
 import { SessionProvider } from "next-auth/react";
 import { Provider, useDispatch } from "react-redux";
 import { store } from "@/lib/store";
-import { HydrateUser } from "./page";
+import { HydrateUser } from "./HydrateUser";
 import { Toaster } from "sonner";
 
 

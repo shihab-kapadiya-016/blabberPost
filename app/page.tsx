@@ -1,179 +1,116 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  Search,
-  TrendingUp,
-  BookOpen,
-  ArrowRight,
-  Moon,
-  Sun,
-  Menu,
-  X,
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { TrendingUp, BookOpen, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
-import { useTheme } from "next-themes";
-import { useDispatch } from "react-redux";
-import { clearUser, setUser } from "@/features/userSlice";
 import Link from "next/link";
-import { jwtDecode } from "jwt-decode"
-import { current } from "@reduxjs/toolkit";
-import { useSession } from "next-auth/react";
+import axios from "axios";
 
-
-
-const featuredPosts = [
-  {
-    id: 1,
-    title: "The Future of Blogging",
-    excerpt: "AI, Web3, and the evolution of content creation...",
-    author: "Jane Doe",
-    tags: ["AI", "Future", "Tech"],
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500",
-  },
-  {
-    id: 2,
-    title: "Mastering TypeScript",
-    excerpt: "From zero to hero in TypeScript for React devs...",
-    author: "John Smith",
-    tags: ["TypeScript", "React"],
-    image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=500",
-  },
-  {
-    id: 3,
-    title: "Minimalist UI Design",
-    excerpt: "Why less is more in modern web interfaces...",
-    author: "Alex Ray",
-    tags: ["UI", "Design"],
-    image: "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=500",
-  },
-];
-
-export function HydrateUser() {
-  const dispatch = useDispatch();
-  const { data: session, status } = useSession();
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      dispatch(setUser(session.user));
-    } else if (status === "unauthenticated") {
-      dispatch(clearUser());
-    }
-  }, [status, session, dispatch]);
-
-  return null;
+type User = {
+    _id: string;
+    username: string;
+    email: string;
+    password: string;
+    avatarUrl: string;
+    bio: string;
+    createdAt: Date
 }
 
 
+type Post = {
+  _id: string;
+  title: string;
+  excerpt: string;
+  authorId: string;
+  tags: string[];
+  coverImageUrl: string;
+};
+
 export default function HomePage() {
-
-
-
-  const [mounted, setMounted] = useState(false)
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [postAuthors, setPostAuthors] = useState<User[]>([])
 
   useEffect(() => {
-    setMounted(true)
-  }, []);
+  const fetchPostsAndAuthors = async () => {
+    try {
+      const res = await axios.get("/api/blog");
+      const blogs = res.data;
+      setPosts(blogs);
 
+      // Fetch authors for each blog
+      const authors = await Promise.all(
+        blogs.map(async (post: any) => {
+          const res = await axios.get(`/api/blog/${post._id}/user`);
+          return res.data.user; // assuming your author endpoint returns { user: ... }
+        })
+      );
 
-  if (!mounted) {
-    return (
-      <h1>Wait a second</h1>
-    )
+      setPostAuthors(authors);
+    } catch (error) {
+      console.error("Error fetching posts or authors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPostsAndAuthors();
+}, []);
+
+  if (loading) {
+    return <h1 className="text-center mt-20">Loading posts...</h1>;
   }
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-
       {/* Hero Section */}
-      <section className="py-20 px-4 text-center">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-5xl md:text-7xl font-extrabold tracking-tight"
-        >
-          Welcome to{" "}
-          <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            BlabberPost
-          </span>
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto"
-        >
-          Share your thoughts, discover amazing stories, and connect with
-          writers worldwide.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8 flex justify-center gap-4"
-        >
-          
-            <Button asChild size="lg" className="cursor-pointer gap-2 dark:bg-white bg-gray-800 text-white dark:text-gray-800 hover:text-gray-800 border-1 dark:hover:text-white dark:hover:bg-gray-800">
-            <Link href={"/write"} passHref className="flex gap-2 justify-center text-center items-center">
-              Start Writing <ArrowRight size={20} />
-            </Link>
-            </Button>
-          <Link href={"/explore"}>
-            <Button variant="outline" size="lg" className="cursor-pointer hover:text-white hover:bg-gray-800">
-              Explore Blogs
-            </Button>
-          </Link>
-        </motion.div>
-      </section>
-
-
-      {/* Featured Section */}
-      <section className="container mx-auto px-4 py-10">
-        <div className="flex items-center gap-2 mb-6">
-          <TrendingUp className="text-purple-500" />
-          <h3 className="text-3xl font-bold">Trending Now</h3>
-        </div>
-
+       <section className="container mx-auto px-4 py-10">
+        <h2 className="text-3xl font-bold mb-6">Latest Blogs</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          {featuredPosts.map((post, idx) => (
+          {posts.map((post, idx) => {
+            const author = postAuthors.find((user) => user._id === post.authorId)
+            return (
             <motion.div
-              key={post.id}
+              key={post._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <Card className="overflow-hidden group cursor-pointer border-none shadow-xl">
-                <div className="relative">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-                <CardContent className="p-4">
-                  <h4 className="text-xl font-semibold mb-2">{post.title}</h4>
-                  <p className="text-muted-foreground text-sm mb-3">
-                    {post.excerpt}
-                  </p>
-                  <div className="flex gap-2 mb-3">
-                    {post.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
+              <Link href={`/explore/${post._id}`}>
+                <Card className="overflow-hidden group cursor-pointer border-none shadow-xl">
+                  <div className="relative">
+                    <img
+                      src={post.coverImageUrl}
+                      alt={post.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   </div>
-                  <p className="text-sm text-muted-foreground">By {post.author}</p>
-                </CardContent>
-              </Card>
+                  <CardContent className="p-4">
+                    <h4 className="text-xl font-semibold mb-2">{post.title}</h4>
+                    <div className="flex gap-2 mb-3">
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-muted-foreground">
+                        By {author?.username || author?.email}...
+                      </p>
+                      <ArrowRight size={20} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
-          ))}
+          )})}
         </div>
       </section>
 
@@ -190,16 +127,12 @@ export default function HomePage() {
             Join thousands of writers and readers on BlabberPost.
           </p>
           <Link href={"/write"}>
-            <Button size="lg" variant="outline" className="cursor-pointer bg-white text-purple-600 dark:text-pink-700 dark:hover:text-pink-50">
+            <Button size="lg" variant="outline">
               Create Your First Post
             </Button>
           </Link>
         </motion.div>
       </section>
-
-
     </div>
-  );
+  );  
 }
-
-
